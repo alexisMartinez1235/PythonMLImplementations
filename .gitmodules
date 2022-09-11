@@ -1,0 +1,3 @@
+[submodule "Python/w/webScrapingJobs"]
+	path = Python/w/webScrapingJobs
+	url = git@github.com:alexisMartinez1235/webScrapingJobs.git
