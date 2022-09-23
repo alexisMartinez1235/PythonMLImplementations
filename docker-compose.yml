@@ -1,0 +1,37 @@
+version: '3.9'
+services:     
+  python:
+    build:
+      args:
+        python_version: ${PYTHON_VERSION}
+      context: .
+      dockerfile: Dockerfiles/python.Dockerfile
+      target: ${MODE_PYTHON_SERVER}
+    container_name: python
+    networks:
+      pythonNet:
+        aliases:
+          - python
+    ports:
+      - 3000:3000
+    user: worker
+    volumes:
+      - ./VsCodeConfigFolders/Python:/home/worker/.vscode-server/
+      - ./Python/w:/usr/src/app
+    # restart: always
+    
+    working_dir: /usr/src/app
+  
+  chromedriver:
+    image: selenium/standalone-chrome:${CHROME_DRIVER_VERSION}
+    container_name: chromedriver
+    networks:
+      pythonNet:
+        aliases:
+          - python
+    ports:
+      - 4444:4444
+networks:
+  pythonNet:
+    driver: bridge
+    name: pythonNet
