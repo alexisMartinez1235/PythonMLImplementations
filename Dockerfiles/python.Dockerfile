@@ -1,19 +1,25 @@
 ARG python_version
 
-FROM joyzoursky/python-chromedriver:${python_version} as dev
+FROM python:${python_version} as dev
 # FROM python:${python_version} as dev
-  ARG USERNAME=worker 
+  ARG USERNAME=worker
 
-  RUN pip install --upgrade pip
-  RUN apk add libgcc libstdc++ shadow
-
+  # RUN pip install --upgrade pip
+  # RUN apk add libgcc libstdc++
+  RUN apt-get install -y passwd
   WORKDIR /usr/src/app
+  
+  # For install pandas
+  # RUN apk add make automake gcc g++ python3-dev
+  RUN apt-get update && apt-get install -y wget build-essential
 
   # Create the user
-  RUN adduser -S -D -G root -h /home/$USERNAME -s /bin/sh $USERNAME \
+  RUN useradd --group root -m $USERNAME \
+  # RUN adduser -S -D -G root -h /home/$USERNAME -s /bin/sh $USERNAME \
     #
     # [Optional] Add sudo support. Omit if you don't need to install software after connecting.
-    && apk add --update sudo shadow \
+    # && apk add --update sudo shadow \
+    && apt-get install sudo \  
     # alpine-zsh-config \
     && echo $USERNAME ALL=\(root\) NOPASSWD:ALL > /etc/sudoers.d/$USERNAME \
     && chmod 0440 /etc/sudoers.d/$USERNAME \
@@ -33,11 +39,13 @@ FROM joyzoursky/python-chromedriver:${python_version} as dev
   # RUN pip install -r requeriments.txt
 
   RUN chown $USERNAME:root -R /usr/src/app
-
+  RUN chown $USERNAME:root -R /home/$USERNAME
+  
   # RUN npm install -g nodemon
   RUN pip install pipenv
   # RUN pipenv shell
   RUN su -c "pipenv install" - $USERNAME
-
+  
   # CMD pipenv run start ; tail -f /dev/null
-  CMD su -c "pipenv run start" - $USERNAME ; tail -f /dev/null
+  # CMD pipenv run start; tail -f /dev/null
+  CMD tail -f /dev/null

@@ -8,13 +8,27 @@ services:
       dockerfile: Dockerfiles/python.Dockerfile
       target: ${MODE_PYTHON_SERVER}
     container_name: python
+    deploy:
+      resources:
+        limits:
+          memory: 530m
+    environment:
+      MONGO_INITDB_DATABASE: webScrapingJobs
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD_FILE: /run/secrets/mongo_root_pw
+    secrets:
+      - mongo_root_pw
     networks:
       pythonNet:
+        aliases:
+          - python
+      monitoring:
         aliases:
           - python
     ports:
       - 3000:3000
     user: worker
+    
     volumes:
       - ./VsCodeConfigFolders/Python:/home/worker/.vscode-server/
       - ./Python/w:/usr/src/app
@@ -25,13 +39,59 @@ services:
   chromedriver:
     image: selenium/standalone-chrome:${CHROME_DRIVER_VERSION}
     container_name: chromedriver
+    deploy:
+      resources:
+        limits:
+          memory: 450m
     networks:
-      pythonNet:
-        aliases:
-          - python
+      - pythonNet
+      - monitoring
     ports:
       - 4444:4444
+    shm_size: 2gb
+  
+  mongo:
+    container_name: mongo
+    image: mongo:${MONGO_VERSION}
+    restart: always
+    ports:
+      - 27017:27017
+    environment:
+      MONGO_INITDB_DATABASE: webScrapingJobs
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD_FILE: /run/secrets/mongo_root_pw
+    secrets:
+      - mongo_root_pw
+    networks:
+      - pythonNet
+      - monitoring
+
+  #datadog:
+    #container_name: datadog
+      # gcr.io/datadoghq/agen# gcr.io/datadoghq/agent:77
+    #image: datadog/agent:7-rc
+    #ports:
+      #- "8125:8125/udp"
+    #environment:
+      #DD_SITE: datadoghq.com
+      #DD_API_KEY: 0af3c7eeb908b83f2ac05cde57ec4308
+    #volumes:
+     #- /var/run/docker.sock:/var/run/docker.sock
+     #- /proc/:/host/proc/:ro
+     #- /sys/fs/cgroup:/host/sys/fs/cgroup:ro
+  #secrets:
+    #- dd_api_key
+
 networks:
   pythonNet:
     driver: bridge
     name: pythonNet
+  monitoring:
+    external: true
+    name: monitoring
+
+secrets:
+  mongo_root_pw:
+    file: ${MONGO_PW_ROOT_PATH}
+  dd_api_key:
+    file: ${DD_API_KEY_FILE}

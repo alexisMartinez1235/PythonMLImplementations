@@ -1,3 +1,6 @@
 [submodule "Python/w"]
 	path = Python/w
 	url = git@github.com:alexisMartinez1235/webScrapingJobs.git
+[submodule "Monitor"]
+	path = Monitor
+	url = git@github.com:alexisMartinez1235/Pintent-Monitor.git
